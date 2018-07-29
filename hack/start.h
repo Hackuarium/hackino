@@ -8,6 +8,6 @@ void start() {
   initParameters();
   nilSysBegin();
     #ifdef THR_WIRE_SLAVE
-   // startWireSlave();
+      startWireSlave();
     #endif
 }
