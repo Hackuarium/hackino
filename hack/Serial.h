@@ -106,7 +106,7 @@ void printResult(char* data, Print* output) {
         }
       }
       paramCurrent += inChar - 64;
-      if (paramCurrent > MAX_PARAM) {
+      if (paramCurrent > MAX_PARAM && wireTargetAddress == 0) {
         paramCurrent = 0;
       }
     }

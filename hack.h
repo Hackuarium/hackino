@@ -3,6 +3,7 @@
 
 #include "time/Time.cpp" // git clone https://github.com/PaulStoffregen/Time
 
+#include "hack/NullStream.h"
 #include "hack/params.h"
 #include "hack/eeprom.h"
 #include "hack/toHex.h"
