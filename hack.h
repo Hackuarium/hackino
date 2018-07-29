@@ -1,8 +1,8 @@
-#include <NilRTOS.h>
+
 #include <avr/wdt.h> // watch dog for automatic reboot in case of crash
 
-
 #include "time/Time.cpp" // git clone https://github.com/PaulStoffregen/Time
+#include "nil/nil.c"
 
 #include "hack/params.h"
 #include "hack/eeprom.h"
