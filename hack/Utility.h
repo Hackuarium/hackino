@@ -115,3 +115,16 @@ uint8_t printCompactParameters(Print* output, byte number) {
 uint8_t printCompactParameters(Print* output) {
   printCompactParameters(output, MAX_PARAM);
 }
+
+//Global Thread Locking
+bool lockTimeCriticalZone=false;
+void protectThread() {
+   while(lockTimeCriticalZone) {
+    nilThdSleepMilliseconds(5);
+   }
+   lockTimeCriticalZone=true;
+}
+
+void unprotectThread() {
+  lockTimeCriticalZone=false;
+}
