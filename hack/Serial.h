@@ -13,7 +13,7 @@ void processSpecificCommand(char* data, char* paramValue, Print* output);
 void printSpecificHelp(Print * output);
 
 
-NIL_WORKING_AREA(waThreadSerial, 150); // minimum 128
+NIL_WORKING_AREA(waThreadSerial, 96); // minimum 96
 NIL_THREAD(ThreadSerial, arg) {
   Serial.begin(9600);
   while (true) {
