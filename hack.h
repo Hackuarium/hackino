@@ -1,4 +1,11 @@
-#include <NilRTOS.h>
+
+#include "nil/NilRTOS.h"
+#include "nil/NilRTOS.c"
+#include "nil/board.c"
+#include "nil/nilcore.c"
+#include "nil/nilUtility.cpp"
+#include "nil/nil.c"
+
 #include <avr/wdt.h> // watch dog for automatic reboot in case of crash
 
 #include "time/Time.cpp" // git clone https://github.com/PaulStoffregen/Time

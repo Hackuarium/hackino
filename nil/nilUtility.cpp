@@ -25,8 +25,8 @@
  * @{
  */
 
-#include <NilRTOS.h>
-#include <avr_heap.h>
+#include "NilRTOS.h"
+#include "avr_heap.h"
 //------------------------------------------------------------------------------
 /** Print size of all all stacks.
  * @param[in] pr Print stream for output.

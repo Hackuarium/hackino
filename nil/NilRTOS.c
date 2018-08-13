@@ -26,8 +26,8 @@
  * @{
  */
 
-#include <NilRTOS.h>
-#include <avr_heap.h>
+#include "NilRTOS.h"
+#include "avr_heap.h"
 //------------------------------------------------------------------------------
 static __attribute__((noinline)) void fill8(uint8_t* bgn, uint8_t* end) {
   while (bgn < end) *bgn++ = 0X55;
