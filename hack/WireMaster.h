@@ -41,11 +41,11 @@ int wireReadInt(uint8_t address) {
   int data = 0;
   Wire.requestFrom(address, (uint8_t)2);
   while (Wire.available()) {
-    if (i++ > 2) return ERROR_VALUE; // security mechanism
     uint8_t oneByte = Wire.read();
     data <<= 8;
     data |= oneByte;
   }
+  if (i != 2) return ERROR_VALUE;
   return data;
 }
 
