@@ -41,6 +41,7 @@ int wireReadInt(uint8_t address) {
   int data = 0;
   Wire.requestFrom(address, (uint8_t)2);
   while (Wire.available()) {
+    i++;
     uint8_t oneByte = Wire.read();
     data <<= 8;
     data |= oneByte;
