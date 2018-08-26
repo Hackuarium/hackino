@@ -169,7 +169,7 @@ void processWireCommand(char command, char* paramValue, Print* output) { // char
   switch (command) {
     case 'p':
       if (paramValue[0] == '\0') {
-        Serial.println(F("Missing device ID"));
+        output->println(F("Missing device ID"));
       } else {
         printWireDeviceParameter(output, atoi(paramValue));
       }

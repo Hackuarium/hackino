@@ -52,20 +52,6 @@
     x = 2;
   else
     x = 0;
-
-  if(x == 1)
-  {
-    Serial.println("Si7021 Found");
-    //Serial.println(ID_Temp_Hum, HEX);
-  }
-  else if(x == 2)
-  {
-    Serial.println("HTU21D Found");
-    //Serial.println(ID_Temp_Hum, HEX);
-  }
-  else
-  	Serial.println("No Devices Detected");
-  	//Serial.println(ID_Temp_Hum, HEX);
 }
 
 /****************Si7021 & HTU21D Functions**************************************/
