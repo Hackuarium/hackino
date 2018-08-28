@@ -37,17 +37,12 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
 
 int wireReadInt(uint8_t address) {
-  uint8_t i = 0;
-  int data = 0;
   Wire.requestFrom(address, (uint8_t)2);
-  while (Wire.available()) {
-    i++;
-    uint8_t oneByte = Wire.read();
-    data <<= 8;
-    data |= oneByte;
+  if(Wire.available() != 2) {
+    return ERROR_VALUE;
   }
-  if (i != 2) return ERROR_VALUE;
-  return data;
+
+  return (Wire.read() << 8) | Wire.read();
 }
 
 void wireWakeup(uint8_t address) {
