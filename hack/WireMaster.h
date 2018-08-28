@@ -6,7 +6,7 @@
 #include <Wire.h>
 
 
-#define WIRE_MAX_DEVICES 5
+#define WIRE_MAX_DEVICES 8
 byte numberI2CDevices = 0;
 byte wireDeviceID[WIRE_MAX_DEVICES];
 
