@@ -3,7 +3,15 @@
 #ifdef THR_WIRE_MASTER
 
 
-#include <Wire.h>
+#define I2C_HARDWARE 1
+#define I2C_TIMEOUT  10
+#define I2C_SLOWMODE 1
+     
+#include <SoftWire.h>
+SoftWire Wire = SoftWire();
+
+
+// #include <Wire.h>
 
 
 #define WIRE_MAX_DEVICES 8
@@ -25,6 +33,8 @@ NIL_THREAD(ThreadWireMaster, arg) {
   while (true) {
 
     #ifdef WIRE_MASTER_HOT_PLUG
+      // allows to log when devices are plugged in / out
+      // not suitable for i2c slave sleep mode
       if (wireEventStatus % 25 == 0) {
         wireUpdateList();
       }
