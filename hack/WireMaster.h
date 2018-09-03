@@ -7,7 +7,7 @@
 #define I2C_TIMEOUT  10
 #define I2C_SLOWMODE 1
      
-#include <SoftWire.h>
+#include "../SoftI2CMaster/SoftWire.h"
 SoftWire Wire = SoftWire();
 
 
