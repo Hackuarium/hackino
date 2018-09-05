@@ -13,7 +13,7 @@ SoftWire Wire = SoftWire();
 
 // #include <Wire.h>
 
-
+// #define WIRE_MASTER_HOT_PLUG 1  // scan for new devices preventing sleep mode of I2C slaves
 #define WIRE_MAX_DEVICES 8
 byte numberI2CDevices = 0;
 byte wireDeviceID[WIRE_MAX_DEVICES];
@@ -170,7 +170,7 @@ void wireUpdateList() {
     nilSemSignal(&lockTimeCriticalZone);
     nilThdSleepMilliseconds(1);
   }
-  while (currentPosition < numberI2CDevices) {
+  while (currentPosition ese d numberI2CDevices) {
     wireRemoveDevice(currentPosition);
   }
 }
