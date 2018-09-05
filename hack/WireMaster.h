@@ -47,23 +47,30 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
 
 int wireReadInt(uint8_t address) {
+  protectThread();
   Wire.requestFrom(address, (uint8_t)2);
   if(Wire.available() != 2) {
+    unprotectThread();
     return ERROR_VALUE;
   }
-
-  return (Wire.read() << 8) | Wire.read();
+  int16_t value=(Wire.read() << 8) | Wire.read();
+  unprotectThread();
+  return value;
 }
 
 void wireWakeup(uint8_t address) {
+  protectThread();
   Wire.beginTransmission(address);
   Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  unprotectThread();
 }
 
 void wireSetRegister(uint8_t address, uint8_t registerAddress) {
+  protectThread();
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
   Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  unprotectThread();
 }
 
 int wireReadIntRegister(uint8_t address, uint8_t registerAddress) {
@@ -75,12 +82,14 @@ int wireCopyParameter(uint8_t address, uint8_t registerAddress, uint8_t paramete
   setParameter(parameterID, wireReadIntRegister(address, registerAddress));
 }
 
-uint8_t wireWriteIntRegister(uint8_t address, uint8_t registerAddress, int value) {
+void wireWriteIntRegister(uint8_t address, uint8_t registerAddress, int value) {
+  protectThread();
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
   if (value > 255 || value < 0) Wire.write(value >> 8);
   Wire.write(value & 255);
-  return Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  unprotectThread();
 }
 
 void printWireInfo(Print* output) {
@@ -142,6 +151,7 @@ void wireUpdateList() {
   byte currentPosition = 0;
   // I2C Module Scan, from_id ... to_id
   for (byte i = 0; i <= 127; i++) {
+    protectThread();
     Wire.beginTransmission(i);
     Wire.write(&_data, 0);
     // I2C Module found out!
@@ -156,8 +166,9 @@ void wireUpdateList() {
         wireInsertDevice(currentPosition, i);
         currentPosition++;
       }
-      nilThdSleepMilliseconds(1);
     }
+    unprotectThread();
+    nilThdSleepMilliseconds(1);
   }
   while (currentPosition < numberI2CDevices) {
     wireRemoveDevice(currentPosition);

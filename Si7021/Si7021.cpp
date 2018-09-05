@@ -61,6 +61,7 @@ float Weather::getRH()
 {
 	// Measure the relative humidity
 	uint16_t RH_Code = makeMeasurment(HUMD_MEASURE_NOHOLD);
+	if (RH_Code==ERROR_VALUE) return ERROR_VALUE;
 	float result = (125.0*RH_Code/65536)-6;
 	return result;
 }
@@ -69,6 +70,7 @@ float Weather::readTemp()
 {
 	// Read temperature from previous RH measurement.
 	uint16_t temp_Code = makeMeasurment(TEMP_PREV);
+	if (temp_Code==ERROR_VALUE) return ERROR_VALUE;
 	float result = (175.72*temp_Code/65536)-46.85;
 	return result;
 }
@@ -77,20 +79,10 @@ float Weather::getTemp()
 {
 	// Measure temperature
 	uint16_t temp_Code = makeMeasurment(TEMP_MEASURE_NOHOLD);
+	if (temp_Code==ERROR_VALUE) return ERROR_VALUE;
 	float result = (175.72*temp_Code/65536)-46.85;
 	return result;
 }
-//Give me temperature in fahrenheit!
-float Weather::readTempF()
-{
-  return((readTemp() * 1.8) + 32.0); // Convert celsius to fahrenheit
-}
-
-float Weather::getTempF()
-{
-  return((getTemp() * 1.8) + 32.0); // Convert celsius to fahrenheit
-}
-
 
 void Weather::heaterOn()
 {
@@ -149,6 +141,7 @@ uint8_t Weather::checkID()
 {
 	uint8_t ID_1;
 
+ 	protectThread();
  	// Check device ID
 	Wire.beginTransmission(ADDRESS);
 	Wire.write(0xFC);
@@ -158,7 +151,7 @@ uint8_t Weather::checkID()
     Wire.requestFrom(ADDRESS,1);
 
     ID_1 = Wire.read();
-
+ 	unprotectThread();
     return(ID_1);
 }
 
@@ -172,26 +165,28 @@ uint16_t Weather::makeMeasurment(uint8_t command)
 	// if we are only reading old temperature, read olny msb and lsb
 	if (command == TEMP_PREV) nBytes = 2;
 
+ protectThread();
 	Wire.beginTransmission(ADDRESS);
 	Wire.write(command);
 	Wire.endTransmission();
+	unprotectThread();
 	// When not using clock stretching (*_NOHOLD commands) delay here
 	// is needed to wait for the measurement.
 	// According to datasheet the max. conversion time is ~22ms
 	 nilThdSleepMilliseconds(23);
 	
+	 protectThread();
 	Wire.requestFrom(ADDRESS,nBytes);
-	if(Wire.available() != nBytes)
-  	return 100;
-
+	if (Wire.available() != nBytes) return ERROR_VALUE;
+ unprotectThread();
 	unsigned int msb = Wire.read();
 	unsigned int lsb = Wire.read();
 	// Clear the last to bits of LSB to 00.
 	// According to datasheet LSB of RH is always xxxxxx10
 	lsb &= 0xFC;
-	unsigned int mesurment = msb << 8 | lsb;
+	unsigned int measurement = msb << 8 | lsb;
 
-	return mesurment;
+	return measurement;
 }
 
 void Weather::writeReg(uint8_t value)
