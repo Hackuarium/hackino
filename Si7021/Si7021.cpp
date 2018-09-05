@@ -141,7 +141,7 @@ uint8_t Weather::checkID()
 {
 	uint8_t ID_1;
 
- 	protectThread();
+ 	nilSemWait(&lockTimeCriticalZone);
  	// Check device ID
 	Wire.beginTransmission(ADDRESS);
 	Wire.write(0xFC);
@@ -151,7 +151,7 @@ uint8_t Weather::checkID()
     Wire.requestFrom(ADDRESS,1);
 
     ID_1 = Wire.read();
- 	unprotectThread();
+ 	nilSemSignal(&lockTimeCriticalZone);  
     return(ID_1);
 }
 
@@ -165,26 +165,30 @@ uint16_t Weather::makeMeasurment(uint8_t command)
 	// if we are only reading old temperature, read olny msb and lsb
 	if (command == TEMP_PREV) nBytes = 2;
 
- protectThread();
+	nilSemWait(&lockTimeCriticalZone);
 	Wire.beginTransmission(ADDRESS);
 	Wire.write(command);
 	Wire.endTransmission();
-	unprotectThread();
+	nilSemSignal(&lockTimeCriticalZone);
 	// When not using clock stretching (*_NOHOLD commands) delay here
 	// is needed to wait for the measurement.
 	// According to datasheet the max. conversion time is ~22ms
-	 nilThdSleepMilliseconds(23);
+	nilThdSleepMilliseconds(23);
 	
-	 protectThread();
+	nilSemWait(&lockTimeCriticalZone);
 	Wire.requestFrom(ADDRESS,nBytes);
-	if (Wire.available() != nBytes) return ERROR_VALUE;
- unprotectThread();
-	unsigned int msb = Wire.read();
-	unsigned int lsb = Wire.read();
-	// Clear the last to bits of LSB to 00.
-	// According to datasheet LSB of RH is always xxxxxx10
-	lsb &= 0xFC;
-	unsigned int measurement = msb << 8 | lsb;
+	unsigned int measurement;
+	if (Wire.available() != nBytes) {
+		measurement=ERROR_VALUE;
+	} else {
+		unsigned int msb = Wire.read();
+		unsigned int lsb = Wire.read();
+		// Clear the last to bits of LSB to 00.
+		// According to datasheet LSB of RH is always xxxxxx10
+		lsb &= 0xFC;
+		unsigned int measurement = msb << 8 | lsb;
+	}
+    nilSemSignal(&lockTimeCriticalZone);
 
 	return measurement;
 }

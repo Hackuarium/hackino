@@ -6,6 +6,8 @@
 #include "nil/nilUtility.cpp"
 #include "nil/nil.c"
 
+SEMAPHORE_DECL(lockTimeCriticalZone, 1); // only one process in some specific zones
+
 #include <avr/wdt.h> // watch dog for automatic reboot in case of crash
 
 #include "time/Time.cpp" // git clone https://github.com/PaulStoffregen/Time

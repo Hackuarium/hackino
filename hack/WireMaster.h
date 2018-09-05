@@ -47,30 +47,30 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
 
 int wireReadInt(uint8_t address) {
-  protectThread();
+  nilSemWait(&lockTimeCriticalZone);
   Wire.requestFrom(address, (uint8_t)2);
   if(Wire.available() != 2) {
-    unprotectThread();
+    nilSemSignal(&lockTimeCriticalZone);
     return ERROR_VALUE;
   }
   int16_t value=(Wire.read() << 8) | Wire.read();
-  unprotectThread();
+  nilSemSignal(&lockTimeCriticalZone);
   return value;
 }
 
 void wireWakeup(uint8_t address) {
-  protectThread();
+  nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
   Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
-  unprotectThread();
+  nilSemSignal(&lockTimeCriticalZone);
 }
 
 void wireSetRegister(uint8_t address, uint8_t registerAddress) {
-  protectThread();
+  nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
   Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
-  unprotectThread();
+  nilSemSignal(&lockTimeCriticalZone);
 }
 
 int wireReadIntRegister(uint8_t address, uint8_t registerAddress) {
@@ -83,13 +83,13 @@ int wireCopyParameter(uint8_t address, uint8_t registerAddress, uint8_t paramete
 }
 
 void wireWriteIntRegister(uint8_t address, uint8_t registerAddress, int value) {
-  protectThread();
+  nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
   if (value > 255 || value < 0) Wire.write(value >> 8);
   Wire.write(value & 255);
   Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
-  unprotectThread();
+  nilSemSignal(&lockTimeCriticalZone);
 }
 
 void printWireInfo(Print* output) {
@@ -151,7 +151,7 @@ void wireUpdateList() {
   byte currentPosition = 0;
   // I2C Module Scan, from_id ... to_id
   for (byte i = 0; i <= 127; i++) {
-    protectThread();
+    nilSemWait(&lockTimeCriticalZone);
     Wire.beginTransmission(i);
     Wire.write(&_data, 0);
     // I2C Module found out!
@@ -167,7 +167,7 @@ void wireUpdateList() {
         currentPosition++;
       }
     }
-    unprotectThread();
+    nilSemSignal(&lockTimeCriticalZone);
     nilThdSleepMilliseconds(1);
   }
   while (currentPosition < numberI2CDevices) {
