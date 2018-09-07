@@ -170,7 +170,7 @@ void wireUpdateList() {
     nilSemSignal(&lockTimeCriticalZone);
     nilThdSleepMilliseconds(1);
   }
-  while (currentPosition ese d numberI2CDevices) {
+  while (currentPosition < numberI2CDevices) {
     wireRemoveDevice(currentPosition);
   }
 }
