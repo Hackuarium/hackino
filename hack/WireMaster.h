@@ -6,12 +6,12 @@
 #define I2C_HARDWARE 1
 #define I2C_TIMEOUT  10
 #define I2C_SLOWMODE 1
-     
-#include "../SoftI2CMaster/SoftWire.h"
-SoftWire Wire = SoftWire();
 
+// Wire.available returns a wrong value with SoftWire when device unplugged
+//#include "../SoftI2CMaster/SoftWire.h"
+//SoftWire Wire = SoftWire();
 
-// #include <Wire.h>
+#include <Wire.h>
 
 // #define WIRE_MASTER_HOT_PLUG 1  // scan for new devices preventing sleep mode of I2C slaves
 #define WIRE_MAX_DEVICES 8
