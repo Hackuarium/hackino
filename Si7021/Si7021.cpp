@@ -181,12 +181,9 @@ uint16_t Weather::makeMeasurment(uint8_t command)
 	if (Wire.available() != nBytes) {
 		measurement=ERROR_VALUE;
 	} else {
-		unsigned int msb = Wire.read();
-		unsigned int lsb = Wire.read();
 		// Clear the last to bits of LSB to 00.
 		// According to datasheet LSB of RH is always xxxxxx10
-		lsb &= 0xFC;
-		unsigned int measurement = msb << 8 | lsb;
+		measurement =  Wire.read() << 8 | (Wire.read() & 0xFC);
 	}
     nilSemSignal(&lockTimeCriticalZone);
 
