@@ -2,24 +2,29 @@
 
 #ifdef THR_WIRE_MASTER
 
-
+#ifndef I2C_HARDWARE
 #define I2C_HARDWARE 1
-#define I2C_TIMEOUT  10
+#endif
+
+#define I2C_TIMEOUT 10
 #define I2C_SLOWMODE 1
 
-// Wire.available returns a wrong value with SoftWire when device unplugged
-//#include "../SoftI2CMaster/SoftWire.h"
-//SoftWire Wire = SoftWire();
-
+#ifdef I2C_HARDWARE
 #include <Wire.h>
+#else
+// Wire.available returns a wrong value with SoftWire when device unplugged
+#include "../SoftI2CMaster/SoftWire.h"
+SoftWire Wire = SoftWire();
+#endif
 
-// #define WIRE_MASTER_HOT_PLUG 1  // scan for new devices preventing sleep mode of I2C slaves
+// #define WIRE_MASTER_HOT_PLUG 1  // scan for new devices preventing sleep mode
+// of I2C slaves
+
 #define WIRE_MAX_DEVICES 8
 byte numberI2CDevices = 0;
 byte wireDeviceID[WIRE_MAX_DEVICES];
 
 void wireUpdateList();
-
 
 NIL_WORKING_AREA(waThreadWireMaster, 200);
 NIL_THREAD(ThreadWireMaster, arg) {
@@ -32,28 +37,27 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
   while (true) {
 
-    #ifdef WIRE_MASTER_HOT_PLUG
-      // allows to log when devices are plugged in / out
-      // not suitable for i2c slave sleep mode
-      if (wireEventStatus % 25 == 0) {
-        wireUpdateList();
-      }
-    #endif
+#ifdef WIRE_MASTER_HOT_PLUG
+    // allows to log when devices are plugged in / out
+    // not suitable for i2c slave sleep mode
+    if (wireEventStatus % 25 == 0) {
+      wireUpdateList();
+    }
+#endif
     wireEventStatus++;
 
     nilThdSleepMilliseconds(200);
   }
 }
 
-
 int wireReadInt(uint8_t address) {
   nilSemWait(&lockTimeCriticalZone);
   Wire.requestFrom(address, (uint8_t)2);
-  if(Wire.available() != 2) {
+  if (Wire.available() != 2) {
     nilSemSignal(&lockTimeCriticalZone);
     return ERROR_VALUE;
   }
-  int16_t value=(Wire.read() << 8) | Wire.read();
+  int16_t value = (Wire.read() << 8) | Wire.read();
   nilSemSignal(&lockTimeCriticalZone);
   return value;
 }
@@ -61,7 +65,8 @@ int wireReadInt(uint8_t address) {
 void wireWakeup(uint8_t address) {
   nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
+                          // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
@@ -69,7 +74,8 @@ void wireSetRegister(uint8_t address, uint8_t registerAddress) {
   nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
+                          // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
@@ -78,7 +84,8 @@ int wireReadIntRegister(uint8_t address, uint8_t registerAddress) {
   return wireReadInt(address);
 }
 
-int wireCopyParameter(uint8_t address, uint8_t registerAddress, uint8_t parameterID) {
+int wireCopyParameter(uint8_t address, uint8_t registerAddress,
+                      uint8_t parameterID) {
   setParameter(parameterID, wireReadIntRegister(address, registerAddress));
 }
 
@@ -86,13 +93,15 @@ void wireWriteIntRegister(uint8_t address, uint8_t registerAddress, int value) {
   nilSemWait(&lockTimeCriticalZone);
   Wire.beginTransmission(address);
   Wire.write(registerAddress);
-  if (value > 255 || value < 0) Wire.write(value >> 8);
+  if (value > 255 || value < 0)
+    Wire.write(value >> 8);
   Wire.write(value & 255);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated start
+  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
+                          // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
-void printWireInfo(Print* output) {
+void printWireInfo(Print *output) {
   wireUpdateList();
   output->println("I2C");
 
@@ -105,18 +114,17 @@ void printWireInfo(Print* output) {
   }
 }
 
-void printWireDeviceParameter(Print* output, uint8_t wireID) {
+void printWireDeviceParameter(Print *output, uint8_t wireID) {
   output->println(F("I2C device: "));
   output->println(wireID);
   for (byte i = 0; i < 26; i++) {
-    output->print((char)(i+65));
+    output->print((char)(i + 65));
     output->print(" : ");
     output->print(i);
     output->print(F(" - "));
     output->println(wireReadIntRegister(wireID, i));
   }
 }
-
 
 void wireRemoveDevice(byte id) {
   for (byte i = id; i < numberI2CDevices - 1; i++) {
@@ -126,7 +134,7 @@ void wireRemoveDevice(byte id) {
 }
 
 void wireInsertDevice(byte id, byte newDevice) {
-  //Serial.println(id);
+  // Serial.println(id);
 
   if (numberI2CDevices < WIRE_MAX_DEVICES) {
     for (byte i = id + 1; i < numberI2CDevices - 1; i++) {
@@ -139,11 +147,11 @@ void wireInsertDevice(byte id, byte newDevice) {
 
 boolean wireDeviceExists(byte id) {
   for (byte i = 0; i < numberI2CDevices; i++) {
-    if (wireDeviceID[i] == id) return true;
+    if (wireDeviceID[i] == id)
+      return true;
   }
   return false;
 }
-
 
 void wireUpdateList() {
   // 16ms
@@ -156,13 +164,20 @@ void wireUpdateList() {
     Wire.write(&_data, 0);
     // I2C Module found out!
     if (Wire.endTransmission() == 0) {
-      // there is a device, we need to check if we should add or remove a previous device
-      if (currentPosition < numberI2CDevices && wireDeviceID[currentPosition] == i) { // it is still the same device that is at the same position, nothing to do
+      // there is a device, we need to check if we should add or remove a
+      // previous device
+      if (currentPosition < numberI2CDevices &&
+          wireDeviceID[currentPosition] ==
+              i) { // it is still the same device that is at the same position,
+                   // nothing to do
         currentPosition++;
-      } else if (currentPosition < numberI2CDevices && wireDeviceID[currentPosition] < i) { // some device(s) disappear, we need to delete them
+      } else if (currentPosition < numberI2CDevices &&
+                 wireDeviceID[currentPosition] <
+                     i) { // some device(s) disappear, we need to delete them
         wireRemoveDevice(currentPosition);
         i--;
-      } else if (currentPosition >= numberI2CDevices || wireDeviceID[currentPosition] > i) { // we need to add a device
+      } else if (currentPosition >= numberI2CDevices ||
+                 wireDeviceID[currentPosition] > i) { // we need to add a device
         wireInsertDevice(currentPosition, i);
         currentPosition++;
       }
@@ -175,28 +190,27 @@ void wireUpdateList() {
   }
 }
 
-void printWireHelp(Print* output) {
+void printWireHelp(Print *output) {
   output->println(F("(il) List devices"));
   output->println(F("(ip) List parameters"));
 }
 
-
-void processWireCommand(char command, char* paramValue, Print* output) { // char and char* ??
+void processWireCommand(char command, char *paramValue,
+                        Print *output) { // char and char* ??
   switch (command) {
-    case 'p':
-      if (paramValue[0] == '\0') {
-        output->println(F("Missing device ID"));
-      } else {
-        printWireDeviceParameter(output, atoi(paramValue));
-      }
-      break;
-    case 'l':
-      printWireInfo(output);
-      break;
-    default:
-      printWireHelp(output);
+  case 'p':
+    if (paramValue[0] == '\0') {
+      output->println(F("Missing device ID"));
+    } else {
+      printWireDeviceParameter(output, atoi(paramValue));
+    }
+    break;
+  case 'l':
+    printWireInfo(output);
+    break;
+  default:
+    printWireHelp(output);
   }
 }
 
 #endif
-
