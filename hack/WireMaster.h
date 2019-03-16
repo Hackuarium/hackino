@@ -10,11 +10,12 @@
 #define I2C_SLOWMODE 1
 
 #ifdef I2C_HARDWARE
-#include <Wire.h>
+#include "../Wire/Wire.cpp"
+TwoWire WireM = TwoWire();
 #else
-// Wire.available returns a wrong value with SoftWire when device unplugged
-#include "../SoftI2CMaster/SoftWire.h"
-SoftWire Wire = SoftWire();
+// WireM.available returns a wrong value with SoftWire when device unplugged
+#include "../SoftI2CMaster/SoftWireM.h"
+SoftWire WireM = SoftWire();
 #endif
 
 // #define WIRE_MASTER_HOT_PLUG 1  // scan for new devices preventing sleep mode
@@ -33,7 +34,7 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
   unsigned int wireEventStatus = 0;
 
-  Wire.begin();
+  WireM.begin();
 
   while (true) {
 
@@ -52,30 +53,30 @@ NIL_THREAD(ThreadWireMaster, arg) {
 
 int wireReadInt(uint8_t address) {
   nilSemWait(&lockTimeCriticalZone);
-  Wire.requestFrom(address, (uint8_t)2);
-  if (Wire.available() != 2) {
+  WireM.requestFrom(address, (uint8_t)2);
+  if (WireM.available() != 2) {
     nilSemSignal(&lockTimeCriticalZone);
     return ERROR_VALUE;
   }
-  int16_t value = (Wire.read() << 8) | Wire.read();
+  int16_t value = (WireM.read() << 8) | WireM.read();
   nilSemSignal(&lockTimeCriticalZone);
   return value;
 }
 
 void wireWakeup(uint8_t address) {
   nilSemWait(&lockTimeCriticalZone);
-  Wire.beginTransmission(address);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
-                          // start
+  WireM.beginTransmission(address);
+  WireM.endTransmission(); // Send data to I2C dev with option for a repeated
+                           // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
 void wireSetRegister(uint8_t address, uint8_t registerAddress) {
   nilSemWait(&lockTimeCriticalZone);
-  Wire.beginTransmission(address);
-  Wire.write(registerAddress);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
-                          // start
+  WireM.beginTransmission(address);
+  WireM.write(registerAddress);
+  WireM.endTransmission(); // Send data to I2C dev with option for a repeated
+                           // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
@@ -91,13 +92,13 @@ int wireCopyParameter(uint8_t address, uint8_t registerAddress,
 
 void wireWriteIntRegister(uint8_t address, uint8_t registerAddress, int value) {
   nilSemWait(&lockTimeCriticalZone);
-  Wire.beginTransmission(address);
-  Wire.write(registerAddress);
+  WireM.beginTransmission(address);
+  WireM.write(registerAddress);
   if (value > 255 || value < 0)
-    Wire.write(value >> 8);
-  Wire.write(value & 255);
-  Wire.endTransmission(); // Send data to I2C dev with option for a repeated
-                          // start
+    WireM.write(value >> 8);
+  WireM.write(value & 255);
+  WireM.endTransmission(); // Send data to I2C dev with option for a repeated
+                           // start
   nilSemSignal(&lockTimeCriticalZone);
 }
 
@@ -160,10 +161,10 @@ void wireUpdateList() {
   // I2C Module Scan, from_id ... to_id
   for (byte i = 0; i <= 127; i++) {
     nilSemWait(&lockTimeCriticalZone);
-    Wire.beginTransmission(i);
-    Wire.write(&_data, 0);
+    WireM.beginTransmission(i);
+    WireM.write(&_data, 0);
     // I2C Module found out!
-    if (Wire.endTransmission() == 0) {
+    if (WireM.endTransmission() == 0) {
       // there is a device, we need to check if we should add or remove a
       // previous device
       if (currentPosition < numberI2CDevices &&
