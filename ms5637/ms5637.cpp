@@ -7,9 +7,6 @@
 
 #include "../SoftI2CMaster/SoftWire.h"
 
-SoftWire WireS = SoftWire();
-
-
 #include "ms5637.h"
 
 // Constants
@@ -45,46 +42,44 @@ SoftWire WireS = SoftWire();
 #define MS5637_TEMP_COEFF_OF_TEMPERATURE_INDEX 6
 
 /**
-* \brief Class constructor
-*
-*/
+ * \brief Class constructor
+ *
+ */
 ms5637::ms5637(void) {}
 
 /**
  * \brief Perform initial configuration. Has to be called once.
  */
-void ms5637::begin(void) {
-  WireS.begin();
-}
+void ms5637::begin(void) { WireM.begin(); }
 
 /**
-* \brief Check whether MS5637 device is connected
-*
-* \return bool : status of MS5637
-*       - true : Device is present
-*       - false : Device is not acknowledging I2C address
-*/
+ * \brief Check whether MS5637 device is connected
+ *
+ * \return bool : status of MS5637
+ *       - true : Device is present
+ *       - false : Device is not acknowledging I2C address
+ */
 boolean ms5637::is_connected(void) {
-  WireS.beginTransmission((uint8_t)MS5637_ADDR);
-  return (WireS.endTransmission() == 0);
+  WireM.beginTransmission((uint8_t)MS5637_ADDR);
+  return (WireM.endTransmission() == 0);
 }
 
 /**
-* \brief Writes the MS5637 8-bits command with the value passed
-*
-* \param[in] uint8_t : Command value to be written.
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*/
+ * \brief Writes the MS5637 8-bits command with the value passed
+ *
+ * \param[in] uint8_t : Command value to be written.
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ */
 enum ms5637_status ms5637::write_command(uint8_t cmd) {
   uint8_t i2c_status;
 
-  WireS.beginTransmission((uint8_t)MS5637_ADDR);
-  WireS.write(cmd);
-  i2c_status = WireS.endTransmission();
+  WireM.beginTransmission((uint8_t)MS5637_ADDR);
+  WireM.write(cmd);
+  i2c_status = WireM.endTransmission();
 
   /* Do the transfer */
   if (i2c_status == ms5637_STATUS_ERR_OVERFLOW)
@@ -96,39 +91,39 @@ enum ms5637_status ms5637::write_command(uint8_t cmd) {
 }
 
 /**
-* \brief Set  ADC resolution.
-*
-* \param[in] ms5637_resolution_osr : Resolution requested
-*
-*/
+ * \brief Set  ADC resolution.
+ *
+ * \param[in] ms5637_resolution_osr : Resolution requested
+ *
+ */
 void ms5637::set_resolution(enum ms5637_resolution_osr res) {
   ms5637_resolution_osr = res;
 }
 
 /**
-* \brief Reset the MS5637 device
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*/
+ * \brief Reset the MS5637 device
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ */
 enum ms5637_status ms5637::reset(void) {
   return write_command(MS5637_RESET_COMMAND);
 }
 
 /**
-* \brief Reads the ms5637 EEPROM coefficient stored at address provided.
-*
-* \param[in] uint8_t : Address of coefficient in EEPROM
-* \param[out] uint16_t* : Value read in EEPROM
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*       - ms5637_status_crc_error : CRC check error on the coefficients
-*/
+ * \brief Reads the ms5637 EEPROM coefficient stored at address provided.
+ *
+ * \param[in] uint8_t : Address of coefficient in EEPROM
+ * \param[out] uint16_t* : Value read in EEPROM
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ *       - ms5637_status_crc_error : CRC check error on the coefficients
+ */
 enum ms5637_status ms5637::read_eeprom_coeff(uint8_t command, uint16_t *coeff) {
   uint8_t buffer[2];
   uint8_t i;
@@ -138,13 +133,13 @@ enum ms5637_status ms5637::read_eeprom_coeff(uint8_t command, uint16_t *coeff) {
   buffer[1] = 0;
 
   /* Read data */
-  WireS.beginTransmission((uint8_t)MS5637_ADDR);
-  WireS.write(command);
-  i2c_status = WireS.endTransmission();
+  WireM.beginTransmission((uint8_t)MS5637_ADDR);
+  WireM.write(command);
+  i2c_status = WireM.endTransmission();
 
-  WireS.requestFrom((uint8_t)MS5637_ADDR, 2U);
+  WireM.requestFrom((uint8_t)MS5637_ADDR, 2U);
   for (i = 0; i < 2; i++) {
-    buffer[i] = WireS.read();
+    buffer[i] = WireM.read();
   }
   // Send the conversion command
   if (i2c_status == ms5637_STATUS_ERR_OVERFLOW)
@@ -156,14 +151,14 @@ enum ms5637_status ms5637::read_eeprom_coeff(uint8_t command, uint16_t *coeff) {
 }
 
 /**
-* \brief Reads the ms5637 EEPROM coefficients to store them for computation.
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*       - ms5637_status_crc_error : CRC check error on the coefficients
-*/
+ * \brief Reads the ms5637 EEPROM coefficients to store them for computation.
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ *       - ms5637_status_crc_error : CRC check error on the coefficients
+ */
 enum ms5637_status ms5637::read_eeprom(void) {
   enum ms5637_status status;
   uint8_t i;
@@ -183,13 +178,13 @@ enum ms5637_status ms5637::read_eeprom(void) {
 }
 
 /**
-* \brief CRC check
-*
-* \param[in] uint16_t *: List of EEPROM coefficients
-* \param[in] uint8_t : crc to compare with
-*
-* \return bool : TRUE if CRC is OK, FALSE if KO
-*/
+ * \brief CRC check
+ *
+ * \param[in] uint16_t *: List of EEPROM coefficients
+ * \param[in] uint8_t : crc to compare with
+ *
+ * \return bool : TRUE if CRC is OK, FALSE if KO
+ */
 boolean ms5637::crc_check(uint16_t *n_prom, uint8_t crc) {
   uint8_t cnt, n_bit;
   uint16_t n_rem, crc_read;
@@ -222,17 +217,17 @@ boolean ms5637::crc_check(uint16_t *n_prom, uint8_t crc) {
 }
 
 /**
-* \brief Triggers conversion and read ADC value
-*
-* \param[in] uint8_t : Command used for conversion (will determine Temperature
-* vs Pressure and osr)
-* \param[out] uint32_t* : ADC value.
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*/
+ * \brief Triggers conversion and read ADC value
+ *
+ * \param[in] uint8_t : Command used for conversion (will determine Temperature
+ * vs Pressure and osr)
+ * \param[out] uint32_t* : ADC value.
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ */
 enum ms5637_status ms5637::conversion_and_read_adc(uint8_t cmd, uint32_t *adc) {
   enum ms5637_status status;
   uint8_t i2c_status;
@@ -240,19 +235,20 @@ enum ms5637_status ms5637::conversion_and_read_adc(uint8_t cmd, uint32_t *adc) {
   uint8_t i;
 
   /* Read data */
-  WireS.beginTransmission((uint8_t)MS5637_ADDR);
-  WireS.write((uint8_t)cmd);
-  WireS.endTransmission();
+  WireM.beginTransmission((uint8_t)MS5637_ADDR);
+  WireM.write((uint8_t)cmd);
+  WireM.endTransmission();
 
-  nilThdSleepMilliseconds(conversion_time[(cmd & MS5637_CONVERSION_OSR_MASK) / 2]);
+  nilThdSleepMilliseconds(
+      conversion_time[(cmd & MS5637_CONVERSION_OSR_MASK) / 2]);
 
-  WireS.beginTransmission((uint8_t)MS5637_ADDR);
-  WireS.write((uint8_t)0x00);
-  i2c_status = WireS.endTransmission();
+  WireM.beginTransmission((uint8_t)MS5637_ADDR);
+  WireM.write((uint8_t)0x00);
+  i2c_status = WireM.endTransmission();
 
-  WireS.requestFrom((uint8_t)MS5637_ADDR, 3U);
+  WireM.requestFrom((uint8_t)MS5637_ADDR, 3U);
   for (i = 0; i < 3; i++) {
-    buffer[i] = WireS.read();
+    buffer[i] = WireM.read();
   }
 
   // delay conversion depending on resolution
@@ -275,18 +271,18 @@ enum ms5637_status ms5637::conversion_and_read_adc(uint8_t cmd, uint32_t *adc) {
 }
 
 /**
-* \brief Reads the temperature and pressure ADC value and compute the
-* compensated values.
-*
-* \param[out] float* : Celsius Degree temperature value
-* \param[out] float* : mbar pressure value
-*
-* \return ms5637_status : status of MS5637
-*       - ms5637_status_ok : I2C transfer completed successfully
-*       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
-*       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
-*       - ms5637_status_crc_error : CRC check error on the coefficients
-*/
+ * \brief Reads the temperature and pressure ADC value and compute the
+ * compensated values.
+ *
+ * \param[out] float* : Celsius Degree temperature value
+ * \param[out] float* : mbar pressure value
+ *
+ * \return ms5637_status : status of MS5637
+ *       - ms5637_status_ok : I2C transfer completed successfully
+ *       - ms5637_status_i2c_transfer_error : Problem with i2c transfer
+ *       - ms5637_status_no_i2c_acknowledge : I2C did not acknowledge
+ *       - ms5637_status_crc_error : CRC check error on the coefficients
+ */
 enum ms5637_status ms5637::read_temperature_and_pressure(float *temperature,
                                                          float *pressure) {
   enum ms5637_status status = ms5637_status_ok;

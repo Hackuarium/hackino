@@ -37,7 +37,6 @@
 Weather::Weather() {}
 
 bool Weather::begin(void) {
-  Wire.begin();
 
   uint8_t ID_Temp_Hum = checkID();
 
@@ -132,14 +131,14 @@ uint8_t Weather::checkID() {
 
   nilSemWait(&lockTimeCriticalZone);
   // Check device ID
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(0xFC);
-  Wire.write(0xC9);
-  Wire.endTransmission();
+  WireM.beginTransmission(ADDRESS);
+  WireM.write(0xFC);
+  WireM.write(0xC9);
+  WireM.endTransmission();
 
-  Wire.requestFrom(ADDRESS, 1);
+  WireM.requestFrom(ADDRESS, 1);
 
-  ID_1 = Wire.read();
+  ID_1 = WireM.read();
   nilSemSignal(&lockTimeCriticalZone);
   return (ID_1);
 }
@@ -155,9 +154,9 @@ uint16_t Weather::makeMeasurment(uint8_t command) {
     nBytes = 2;
 
   nilSemWait(&lockTimeCriticalZone);
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(command);
-  Wire.endTransmission();
+  WireM.beginTransmission(ADDRESS);
+  WireM.write(command);
+  WireM.endTransmission();
   nilSemSignal(&lockTimeCriticalZone);
   // When not using clock stretching (*_NOHOLD commands) delay here
   // is needed to wait for the measurement.
@@ -165,14 +164,14 @@ uint16_t Weather::makeMeasurment(uint8_t command) {
   nilThdSleepMilliseconds(23);
 
   nilSemWait(&lockTimeCriticalZone);
-  Wire.requestFrom(ADDRESS, nBytes);
+  WireM.requestFrom(ADDRESS, nBytes);
   unsigned int measurement;
-  if (Wire.available() != nBytes) {
+  if (WireM.available() != nBytes) {
     measurement = ERROR_VALUE;
   } else {
     // Clear the last to bits of LSB to 00.
     // According to datasheet LSB of RH is always xxxxxx10
-    measurement = Wire.read() << 8 | (Wire.read() & 0xFC);
+    measurement = WireM.read() << 8 | (WireM.read() & 0xFC);
   }
   nilSemSignal(&lockTimeCriticalZone);
 
@@ -181,18 +180,18 @@ uint16_t Weather::makeMeasurment(uint8_t command) {
 
 void Weather::writeReg(uint8_t value) {
   // Write to user register on ADDRESS
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(WRITE_USER_REG);
-  Wire.write(value);
-  Wire.endTransmission();
+  WireM.beginTransmission(ADDRESS);
+  WireM.write(WRITE_USER_REG);
+  WireM.write(value);
+  WireM.endTransmission();
 }
 
 uint8_t Weather::readReg() {
   // Read from user register on ADDRESS
-  Wire.beginTransmission(ADDRESS);
-  Wire.write(READ_USER_REG);
-  Wire.endTransmission();
-  Wire.requestFrom(ADDRESS, 1);
-  uint8_t regVal = Wire.read();
+  WireM.beginTransmission(ADDRESS);
+  WireM.write(READ_USER_REG);
+  WireM.endTransmission();
+  WireM.requestFrom(ADDRESS, 1);
+  uint8_t regVal = WireM.read();
   return regVal;
 }
