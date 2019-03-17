@@ -9,12 +9,12 @@
 #define I2C_TIMEOUT 10
 #define I2C_SLOWMODE 1
 
-#ifdef I2C_HARDWARE
+#if I2C_HARDWARE == 1
 #include "../Wire/Wire.cpp"
 TwoWire WireM = TwoWire();
 #else
 // WireM.available returns a wrong value with SoftWire when device unplugged
-#include "../SoftI2CMaster/SoftWireM.h"
+#include "../SoftI2CMaster/SoftWire.h"
 SoftWire WireM = SoftWire();
 #endif
 
