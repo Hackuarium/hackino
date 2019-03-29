@@ -34,20 +34,6 @@ int getParameter(byte number) {
   return parameters[number];
 }
 
-void setParameterBit(byte number, byte bitToSet) {
-  bitSet(parameters[number], bitToSet);
-  // parameters[number]=parameters[number] | (1 << bitToSet);
-}
-
-void clearParameterBit(byte number, byte bitToClear) {
-  bitClear(parameters[number], bitToClear);
-  // parameters[number]=parameters[number] & ( ~ (1 << bitToClear));
-}
-
-byte getParameterBit(byte number, byte bitToRead) {
-  return bitRead(parameters[number], bitToRead);
-  // return (parameters[number] >> bitToRead ) & 1;
-}
 
 void setParameter(byte number, int value) {
   parameters[number] = value;
@@ -73,6 +59,28 @@ void setAndSaveParameter(byte number, int value) {
   eeprom_write_word((uint16_t*) EE_START_PARAM + number, value);
 }
 
+
+
+boolean getParameterBit(byte number, byte bitToRead) {
+  return (parameters[number] >> bitToRead ) & 1;
+}
+
+
+boolean setParameterBit(byte number, byte bitToSet) {
+  if (getParameterBit(number, bitToSet)) return false;
+  parameters[number] |= 1 << bitToSet;
+  return true;
+}
+
+boolean clearParameterBit(byte number, byte bitToClear) {
+  if (! getParameterBit(number, bitToClear)) return false;
+  parameters[number] &=  ~ (1 << bitToClear);
+  return true;
+}
+
+void toggleParameterBit(byte number, byte bitToToggle) {
+  parameters[number] ^= 1 << bitToToggle;
+}
 
 void printParameter(Print* output, byte number) {
   output->print(number);
@@ -114,4 +122,9 @@ uint8_t printCompactParameters(Print* output, byte number) {
 
 uint8_t printCompactParameters(Print* output) {
   printCompactParameters(output, MAX_PARAM);
+}
+
+void reboot() {
+  wdt_enable(WDTO_15MS);
+  delay(20);
 }
