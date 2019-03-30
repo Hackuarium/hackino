@@ -152,6 +152,11 @@ void printResult(char* data, Print* output) {
       processWireCommand(data[1], paramValue, output);
       break;
     #endif
+    #ifdef THR_EEPROM_LOGGER
+    case 'l':
+      processLoggerCommand(data[1], paramValue, output);
+      break;
+    #endif
     case 's':
       printParameters(output);
       break;
@@ -169,6 +174,9 @@ void printHelp(Print* output) {
   output->println(F("(h)elp"));
   #ifdef THR_WIRE_MASTER
   output->println(F("(i)2c"));
+  #endif
+    #ifdef THR_EEPROM_LOGGER
+  output->println(F("(l)og"));
   #endif
   output->println(F("(s)ettings"));
   
