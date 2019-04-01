@@ -102,8 +102,8 @@ NIL_THREAD(ThreadLogger, arg) {
 void printLoggerHelp(Print * output) {
   output->println(F("Logger help"));
   output->println(F("(ld) Dump"));
+  output->println(F("(lf) Format"));
   output->println(F("(lw) Write log"));
-
 }
 
 void processLoggerCommand(char command, char* data, Print* output) {
