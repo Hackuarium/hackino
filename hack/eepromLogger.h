@@ -80,7 +80,7 @@ void printLog(Print* output) {
   }
 }
 
-NIL_WORKING_AREA(waThreadLogger, 200);
+NIL_WORKING_AREA(waThreadLogger, 20);
 NIL_THREAD(ThreadLogger, arg) {
   loggerInit();
   while (true) {
