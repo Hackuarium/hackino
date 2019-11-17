@@ -20,6 +20,30 @@ int parameters[MAX_PARAM];
 
 
 uint16_t getQualifier();
+boolean setParameterBit(byte number, byte bitToSet);
+boolean clearParameterBit(byte number, byte bitToClear);
+void writeLog(uint16_t event_number, int parameter_value);
+
+boolean getParameterBit(byte number, byte bitToRead) {
+  return (parameters[number] >> bitToRead ) & 1;
+}
+
+boolean setParameterBit(byte number, byte bitToSet) {
+  if (getParameterBit(number, bitToSet)) return false;
+  parameters[number] |= 1 << bitToSet;
+  return true;
+}
+
+boolean clearParameterBit(byte number, byte bitToClear) {
+  if (! getParameterBit(number, bitToClear)) return false;
+  parameters[number] &=  ~ (1 << bitToClear);
+  return true;
+}
+
+void toggleParameterBit(byte number, byte bitToToggle) {
+  parameters[number] ^= 1 << bitToToggle;
+}
+
 
 void setupParameters() {
   //We copy all the values in the parameters table
@@ -53,30 +77,33 @@ void setAndSaveParameter(byte number, int value) {
   parameters[number] = value;
   //The address of the parameter is given by : EE_START_PARAM+number*2
   eeprom_write_word((uint16_t*) EE_START_PARAM + number, value);
+  #ifdef EVENT_LOGGING
+  writeLog(EVENT_PARAMETER_SET + number, value);
+#endif
 }
 
 
-
-boolean getParameterBit(byte number, byte bitToRead) {
-  return (parameters[number] >> bitToRead ) & 1;
+// this method will check if there was a change in the error status and log it in this case
+boolean saveAndLogError(boolean isError, byte errorFlag) {
+  if (isError) {
+    if (setParameterBit(PARAM_ERROR, errorFlag)) { // the status has changed
+#ifdef EVENT_LOGGING
+      writeLog(EVENT_ERROR_FAILED, errorFlag);
+#endif
+      return true;
+    }
+  } else {
+    if (clearParameterBit(PARAM_ERROR, errorFlag)) { // the status has changed
+#ifdef EVENT_LOGGING
+      writeLog(EVENT_ERROR_RECOVER, errorFlag);
+#endif
+      return true;
+    }
+  }
+  return false;
 }
 
 
-boolean setParameterBit(byte number, byte bitToSet) {
-  if (getParameterBit(number, bitToSet)) return false;
-  parameters[number] |= 1 << bitToSet;
-  return true;
-}
-
-boolean clearParameterBit(byte number, byte bitToClear) {
-  if (! getParameterBit(number, bitToClear)) return false;
-  parameters[number] &=  ~ (1 << bitToClear);
-  return true;
-}
-
-void toggleParameterBit(byte number, byte bitToToggle) {
-  parameters[number] ^= 1 << bitToToggle;
-}
 
 void printParameter(Print* output, byte number) {
   output->print(number);
