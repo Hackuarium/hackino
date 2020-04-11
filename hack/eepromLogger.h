@@ -49,9 +49,9 @@ void loggerInit() {
   eepromLoggerID++;
 }
 
-int16_t getLogParameter(uint16_t entryID, byte parameter) {
-  int firstAddress = getFirstAddress(entryID)+4+parameter*4;
-  return eeprom_read_word((int16_t*) (firstAddress + i * 2));
+int16_t getParameterFromLog(uint16_t entryID, byte parameter) {
+  int address = getFirstAddress(entryID) + 4 + parameter * 2;
+  return eeprom_read_word((int16_t*) (address));
 }
 
 void readLog(uint16_t entryID) {
@@ -70,11 +70,11 @@ void formatLog() {
   writeLog();
 }
 
-int16_t getFirstLogEntryID() {
+uint16_t getFirstLogEntryID() {
   return NUMBER_LOGS > eepromLoggerID ? 0 : eepromLoggerID-NUMBER_LOGS;
 }
 
-int16_t getNextLogEntryID() {
+uint16_t getNextLogEntryID() {
   return eepromLoggerID;
 }
 
