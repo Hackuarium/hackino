@@ -1,5 +1,3 @@
-#define THR_EEPROM_LOGGER
-
 #ifdef THR_EEPROM_LOGGER
 
 // part of the EEPROM is for the log
