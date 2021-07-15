@@ -2,7 +2,7 @@
 
 #ifdef THR_WIRE_SLAVE
 
-#include "../Wire/src/Wire.cpp"
+#include "../Wire/Wire.cpp"
 
 uint8_t command = 0x00;
 
